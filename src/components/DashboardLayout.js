@@ -8,6 +8,7 @@ import Communities from '../screens/officers/Communities';
 import TripsMade from '../screens/officers/TripsMade';
 import ComplianceMonitoring from '../screens/officers/ComplianceMonitoring';
 import StatusAndKPIs from '../screens/officers/StatusAndKPIs';
+import FarmersLayout from '../screens/farmers/FarmersLayout';
 
 const DashboardLayout = () => {
   return (
@@ -33,6 +34,7 @@ const DashboardLayout = () => {
             <Route path="compliance" element={<ComplianceMonitoring />} />
             <Route path="status" element={<StatusAndKPIs />} />
           </Route>
+          <Route path="farmers/*" element={<FarmersLayout />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Box>

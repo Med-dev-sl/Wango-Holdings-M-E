@@ -19,6 +19,11 @@ import MapIcon from '@mui/icons-material/Map';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import AgricultureIcon from '@mui/icons-material/Agriculture';
+import GroupIcon from '@mui/icons-material/Group';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import GrassIcon from '@mui/icons-material/Grass';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { useNavigate } from 'react-router-dom';
@@ -58,6 +63,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { signOut } = useFirebase();
   const [officersMenuOpen, setOfficersMenuOpen] = useState(false);
+  const [farmersMenuOpen, setFarmersMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -70,6 +76,10 @@ const Sidebar = () => {
 
   const handleOfficersClick = () => {
     setOfficersMenuOpen(!officersMenuOpen);
+  };
+
+  const handleFarmersClick = () => {
+    setFarmersMenuOpen(!farmersMenuOpen);
   };
 
   return (
@@ -162,6 +172,56 @@ const Sidebar = () => {
               nested
             >
               Status & KPIs
+            </SidebarItem>
+          </List>
+        </Collapse>
+
+        {/* Farmers Menu */}
+        <SidebarItem 
+          icon={AgricultureIcon} 
+          onClick={handleFarmersClick}
+          hasSubmenu
+          open={farmersMenuOpen}
+        >
+          Farmers
+        </SidebarItem>
+        
+        <Collapse in={farmersMenuOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <SidebarItem 
+              icon={PersonAddIcon} 
+              onClick={() => navigate('/dashboard/farmers/register')}
+              nested
+            >
+              Register Farmer
+            </SidebarItem>
+            <SidebarItem 
+              icon={GroupIcon} 
+              onClick={() => navigate('/dashboard/farmers/manage')}
+              nested
+            >
+              Manage Farmers
+            </SidebarItem>
+            <SidebarItem 
+              icon={GrassIcon} 
+              onClick={() => navigate('/dashboard/farmers/crops')}
+              nested
+            >
+              Assign Crops
+            </SidebarItem>
+            <SidebarItem 
+              icon={InventoryIcon} 
+              onClick={() => navigate('/dashboard/farmers/inputs')}
+              nested
+            >
+              Track Inputs
+            </SidebarItem>
+            <SidebarItem 
+              icon={LocalShippingIcon} 
+              onClick={() => navigate('/dashboard/farmers/deliveries')}
+              nested
+            >
+              Manage Deliveries
             </SidebarItem>
           </List>
         </Collapse>
