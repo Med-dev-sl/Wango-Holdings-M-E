@@ -18,7 +18,10 @@ import {
   Grid,
   MenuItem,
   Snackbar,
-  Alert
+  Alert,
+  Chip,
+  IconButton,
+  Divider
 } from '@mui/material';
 import { collection, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
@@ -29,6 +32,8 @@ const ManageDeliveries = () => {
   const [crops, setCrops] = useState([]);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewAllDialog, setViewAllDialog] = useState(false);
+  const [selectedDeliveries, setSelectedDeliveries] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
@@ -100,6 +105,12 @@ const ManageDeliveries = () => {
       notes: ''
     });
     setDialogOpen(true);
+  };
+
+  const handleViewAllDeliveries = (farmer) => {
+    setSelectedFarmer(farmer);
+    setSelectedDeliveries(farmer.deliveries || []);
+    setViewAllDialog(true);
   };
 
   const handleChange = (e) => {
@@ -191,11 +202,56 @@ const ManageDeliveries = () => {
                   {(farmer.deliveries || []).slice(-3).map((delivery, index) => {
                     const crop = crops.find(c => c.id === delivery.cropId);
                     return crop ? (
-                      <Typography key={index} variant="body2">
-                        {crop.name}: {delivery.quantity} ({new Date(delivery.deliveryDate).toLocaleDateString()})
-                      </Typography>
+                      <Box key={index} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+                        <Typography variant="subtitle2" color="primary">
+                          {crop.name}
+                        </Typography>
+                        <Grid container spacing={1}>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="textSecondary">
+                              Amount: {delivery.quantity} {crop.unit || 'kg'}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2" color="textSecondary">
+                              Date: {new Date(delivery.deliveryDate).toLocaleDateString()}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="body2">
+                              Quality: {' '}
+                              <Chip 
+                                label={delivery.quality} 
+                                size="small"
+                                color={
+                                  delivery.quality === 'excellent' ? 'success' :
+                                  delivery.quality === 'good' ? 'primary' :
+                                  delivery.quality === 'fair' ? 'warning' : 'error'
+                                }
+                                sx={{ height: 20 }}
+                              />
+                            </Typography>
+                          </Grid>
+                          {delivery.notes && (
+                            <Grid item xs={12}>
+                              <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
+                                Notes: {delivery.notes}
+                              </Typography>
+                            </Grid>
+                          )}
+                        </Grid>
+                      </Box>
                     ) : null;
                   })}
+                  {farmer.deliveries?.length > 3 && (
+                    <Button 
+                      size="small" 
+                      onClick={() => handleViewAllDeliveries(farmer)}
+                      sx={{ mt: 1 }}
+                    >
+                      View All ({farmer.deliveries.length})
+                    </Button>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Button
@@ -304,6 +360,63 @@ const ManageDeliveries = () => {
           <Button onClick={handleSave} variant="contained" color="primary">
             Save
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={viewAllDialog}
+        onClose={() => setViewAllDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">
+              All Deliveries for {selectedFarmer?.name} ({selectedFarmer?.whfId})
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Crop</TableCell>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Quality</TableCell>
+                  <TableCell>Notes</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedDeliveries.sort((a, b) => new Date(b.deliveryDate) - new Date(a.deliveryDate)).map((delivery, index) => {
+                  const crop = crops.find(c => c.id === delivery.cropId);
+                  return crop ? (
+                    <TableRow key={index}>
+                      <TableCell>{new Date(delivery.deliveryDate).toLocaleDateString()}</TableCell>
+                      <TableCell>{crop.name}</TableCell>
+                      <TableCell>{delivery.quantity} {crop.unit || 'kg'}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={delivery.quality} 
+                          size="small"
+                          color={
+                            delivery.quality === 'excellent' ? 'success' :
+                            delivery.quality === 'good' ? 'primary' :
+                            delivery.quality === 'fair' ? 'warning' : 'error'
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>{delivery.notes || '-'}</TableCell>
+                    </TableRow>
+                  ) : null;
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewAllDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 
