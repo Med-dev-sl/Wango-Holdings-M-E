@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read and write to all collections
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Officers collection rules
+    match /officers/{officerId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Communities collection rules
+    match /communities/{communityId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Trips collection rules
+    match /trips/{tripId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
