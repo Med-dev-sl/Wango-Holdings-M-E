@@ -18,13 +18,11 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
-  IconButton,
   Grid,
   Card,
   CardContent,
   LinearProgress
 } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
 import { startOfYear, endOfYear, format } from 'date-fns';
@@ -127,14 +125,6 @@ const YieldReport = () => {
     }
   };
 
-  const handleExport = async (format) => {
-    try {
-      // Implementation for export functionality
-      setSuccess('Report exported successfully as ' + format);
-    } catch (error) {
-      setError('Error exporting report: ' + error.message);
-    }
-  };
 
   return (
     <Box sx={{ p: 3 }}>

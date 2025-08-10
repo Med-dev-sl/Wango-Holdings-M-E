@@ -17,10 +17,8 @@ import {
   Button,
   CircularProgress,
   Alert,
-  Snackbar,
-  IconButton
+  Snackbar
 } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
@@ -127,15 +125,6 @@ const WeeklyReport = () => {
     }
   };
 
-  const handleExport = async (format) => {
-    try {
-      // Implementation for export functionality
-      // This would typically involve converting the data to CSV/Excel/PDF
-      setSuccess('Report exported successfully as ' + format);
-    } catch (error) {
-      setError('Error exporting report: ' + error.message);
-    }
-  };
 
   return (
     <Box sx={{ p: 3 }}>

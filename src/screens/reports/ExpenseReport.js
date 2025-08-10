@@ -18,12 +18,10 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
-  IconButton,
   Grid,
   Card,
   CardContent
 } from '@mui/material';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
@@ -116,14 +114,6 @@ const ExpenseReport = () => {
     return { tripTotal, inputTotal, grandTotal: tripTotal + inputTotal };
   };
 
-  const handleExport = async (format) => {
-    try {
-      // Implementation for export functionality
-      setSuccess('Report exported successfully as ' + format);
-    } catch (error) {
-      setError('Error exporting report: ' + error.message);
-    }
-  };
 
   return (
     <Box sx={{ p: 3 }}>
