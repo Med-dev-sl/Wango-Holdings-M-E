@@ -76,6 +76,7 @@ const Sidebar = () => {
   const [farmersMenuOpen, setFarmersMenuOpen] = useState(false);
   const [tripsMenuOpen, setTripsMenuOpen] = useState(false);
   const [cropsMenuOpen, setCropsMenuOpen] = useState(false);
+  const [reportsMenuOpen, setReportsMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -100,6 +101,10 @@ const Sidebar = () => {
 
   const handleCropsClick = () => {
     setCropsMenuOpen(!cropsMenuOpen);
+  };
+
+  const handleReportsClick = () => {
+    setReportsMenuOpen(!reportsMenuOpen);
   };
 
   return (
@@ -335,6 +340,49 @@ const Sidebar = () => {
               nested
             >
               Trip Photos
+            </SidebarItem>
+          </List>
+        </Collapse>
+
+        {/* Reports Menu */}
+        <SidebarItem 
+          icon={AssessmentIcon} 
+          onClick={handleReportsClick}
+          hasSubmenu
+          open={reportsMenuOpen}
+        >
+          Reports
+        </SidebarItem>
+        
+        <Collapse in={reportsMenuOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <SidebarItem 
+              icon={TimelineIcon} 
+              onClick={() => navigate('reports/weekly')}
+              nested
+            >
+              Weekly Report
+            </SidebarItem>
+            <SidebarItem 
+              icon={AgricultureIcon} 
+              onClick={() => navigate('reports/farmer')}
+              nested
+            >
+              Farmer Report
+            </SidebarItem>
+            <SidebarItem 
+              icon={ReceiptIcon} 
+              onClick={() => navigate('reports/expenses')}
+              nested
+            >
+              Expense Report
+            </SidebarItem>
+            <SidebarItem 
+              icon={BarChartIcon} 
+              onClick={() => navigate('reports/yield')}
+              nested
+            >
+              Yield Report
             </SidebarItem>
           </List>
         </Collapse>

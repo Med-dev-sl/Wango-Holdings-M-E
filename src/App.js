@@ -3,8 +3,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginScreen from './screens/LoginScreen';
 import CssBaseline from '@mui/material/CssBaseline';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import theme from './theme';
 import { useFirebase, FirebaseProvider } from './firebase/context';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,10 +12,9 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<LoginScreen />} />
+      <Router>
+        <Routes>
+          <Route path="/" element={<LoginScreen />} />
           <Route 
             path="/dashboard/*" 
             element={
@@ -29,9 +26,8 @@ const App = () => {
             } 
           />
           <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
-      </LocalizationProvider>
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 }

@@ -15,6 +15,10 @@ import InputDistribution from '../screens/crops/InputDistribution';
 import InputTypes from '../screens/crops/InputTypes';
 import SeasonTracking from '../screens/crops/SeasonTracking';
 import YieldMonitoring from '../screens/crops/YieldMonitoring';
+import WeeklyReport from '../screens/reports/WeeklyReport';
+import FarmerReport from '../screens/reports/FarmerReport';
+import ExpenseReport from '../screens/reports/ExpenseReport';
+import YieldReport from '../screens/reports/YieldReport';
 
 const DashboardLayout = () => {
   return (
@@ -49,6 +53,15 @@ const DashboardLayout = () => {
           <Route path="input-types" element={<InputTypes />} />
           <Route path="season-tracking" element={<SeasonTracking />} />
           <Route path="yield-monitoring" element={<YieldMonitoring />} />
+          
+          {/* Report Routes */}
+          <Route path="reports">
+            <Route path="weekly" element={<WeeklyReport />} />
+            <Route path="farmer" element={<FarmerReport />} />
+            <Route path="expenses" element={<ExpenseReport />} />
+            <Route path="yield" element={<YieldReport />} />
+          </Route>
+          
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Box>
