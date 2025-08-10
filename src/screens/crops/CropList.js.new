@@ -1,0 +1,271 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  IconButton,
+  Snackbar,
+  Alert,
+  Link
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useNavigate } from 'react-router-dom';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { useFirebase } from '../../firebase/context';
+
+const CropList = () => {
+  const navigate = useNavigate();
+  const { db } = useFirebase();
+  const [crops, setCrops] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCrop, setEditingCrop] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const [formData, setFormData] = useState({
+    name: '',
+    type: '',
+    season: '',
+    growthPeriod: '',
+    description: ''
+  });
+
+  useEffect(() => {
+    fetchCrops();
+  }, [db]);
+
+  const fetchCrops = async () => {
+    try {
+      console.log('Fetching crops from Firestore...');
+      const cropsRef = collection(db, 'crops');
+      const snapshot = await getDocs(cropsRef);
+      const cropsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      console.log('Fetched crops:', cropsList);
+      setCrops(cropsList);
+    } catch (error) {
+      console.error('Error fetching crops:', error);
+      setError('Error fetching crops: ' + error.message);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingCrop) {
+        await updateDoc(doc(db, 'crops', editingCrop.id), formData);
+        setSuccess('Crop updated successfully');
+      } else {
+        const docRef = await addDoc(collection(db, 'crops'), formData);
+        console.log('Created new crop with ID:', docRef.id);
+        setSuccess('Crop added successfully');
+      }
+      setDialogOpen(false);
+      fetchCrops();
+      resetForm();
+    } catch (error) {
+      console.error('Error saving crop:', error);
+      setError('Error saving crop: ' + error.message);
+    }
+  };
+
+  const handleDelete = async (cropId) => {
+    if (window.confirm('Are you sure you want to delete this crop?')) {
+      try {
+        await deleteDoc(doc(db, 'crops', cropId));
+        setSuccess('Crop deleted successfully');
+        fetchCrops();
+      } catch (error) {
+        setError('Error deleting crop: ' + error.message);
+      }
+    }
+  };
+
+  const handleEdit = (crop) => {
+    setEditingCrop(crop);
+    setFormData(crop);
+    setDialogOpen(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      type: '',
+      season: '',
+      growthPeriod: '',
+      description: ''
+    });
+    setEditingCrop(null);
+  };
+
+  const handleRowClick = (cropId) => {
+    console.log('Navigating to crop details with ID:', cropId);
+    navigate(`/dashboard/crops/${cropId}`);
+  };
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Crop List
+      </Typography>
+
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            resetForm();
+            setDialogOpen(true);
+          }}
+          sx={{ mb: 2 }}
+        >
+          Add New Crop
+        </Button>
+
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Season</TableCell>
+                <TableCell>Growth Period</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {crops.map((crop) => (
+                <TableRow 
+                  key={crop.id} 
+                  hover
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell onClick={() => handleRowClick(crop.id)}>
+                    <Typography color="primary" sx={{ textDecoration: 'underline' }}>
+                      {crop.name}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{crop.type}</TableCell>
+                  <TableCell>{crop.season}</TableCell>
+                  <TableCell>{crop.growthPeriod}</TableCell>
+                  <TableCell>{crop.description}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(crop);
+                    }} size="small">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(crop.id);
+                      }} 
+                      size="small" 
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>{editingCrop ? 'Edit Crop' : 'Add New Crop'}</DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ pt: 2 }}>
+            <TextField
+              fullWidth
+              label="Crop Name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              margin="normal"
+              required
+            />
+            <TextField
+              fullWidth
+              label="Crop Type"
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              margin="normal"
+              required
+            />
+            <TextField
+              fullWidth
+              label="Growing Season"
+              value={formData.season}
+              onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Growth Period"
+              value={formData.growthPeriod}
+              onChange={(e) => setFormData({ ...formData, growthPeriod: e.target.value })}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              margin="normal"
+              multiline
+              rows={3}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            {editingCrop ? 'Update' : 'Add'} Crop
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="error" onClose={() => setError('')}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={!!success}
+        autoHideDuration={6000}
+        onClose={() => setSuccess('')}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="success" onClose={() => setSuccess('')}>
+          {success}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+};
+
+export default CropList;

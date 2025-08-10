@@ -27,6 +27,11 @@ import GrassIcon from '@mui/icons-material/Grass';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import DirectionsIcon from '@mui/icons-material/Directions';
+import AgriculturalServicesIcon from '@mui/icons-material/Agriculture';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
@@ -70,6 +75,7 @@ const Sidebar = () => {
   const [officersMenuOpen, setOfficersMenuOpen] = useState(false);
   const [farmersMenuOpen, setFarmersMenuOpen] = useState(false);
   const [tripsMenuOpen, setTripsMenuOpen] = useState(false);
+  const [cropsMenuOpen, setCropsMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -90,6 +96,10 @@ const Sidebar = () => {
 
   const handleTripsClick = () => {
     setTripsMenuOpen(!tripsMenuOpen);
+  };
+
+  const handleCropsClick = () => {
+    setCropsMenuOpen(!cropsMenuOpen);
   };
 
   return (
@@ -232,6 +242,56 @@ const Sidebar = () => {
               nested
             >
               Manage Deliveries
+            </SidebarItem>
+          </List>
+        </Collapse>
+
+        {/* Crops & Input Distribution Menu */}
+        <SidebarItem 
+          icon={AgriculturalServicesIcon} 
+          onClick={handleCropsClick}
+          hasSubmenu
+          open={cropsMenuOpen}
+        >
+          Crops & Inputs
+        </SidebarItem>
+        
+        <Collapse in={cropsMenuOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <SidebarItem 
+              icon={FormatListBulletedIcon} 
+              onClick={() => navigate('crops')}
+              nested
+            >
+              Crop List
+            </SidebarItem>
+            <SidebarItem 
+              icon={LocalShippingOutlinedIcon} 
+              onClick={() => navigate('input-distribution')}
+              nested
+            >
+              Distribution Log
+            </SidebarItem>
+            <SidebarItem 
+              icon={InventoryIcon} 
+              onClick={() => navigate('input-types')}
+              nested
+            >
+              Input Types
+            </SidebarItem>
+            <SidebarItem 
+              icon={WaterDropIcon} 
+              onClick={() => navigate('season-tracking')}
+              nested
+            >
+              Season Tracking
+            </SidebarItem>
+            <SidebarItem 
+              icon={BarChartIcon} 
+              onClick={() => navigate('yield-monitoring')}
+              nested
+            >
+              Yield Monitoring
             </SidebarItem>
           </List>
         </Collapse>
