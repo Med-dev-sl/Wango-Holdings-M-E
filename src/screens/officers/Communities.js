@@ -33,7 +33,7 @@ const Communities = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    location: '',
+    chiefdom: '',
     contactPerson: '',
     contactPhone: ''
   });
@@ -85,7 +85,7 @@ const Communities = () => {
       setFormData({
         name: '',
         description: '',
-        location: '',
+        chiefdom: '',
         contactPerson: '',
         contactPhone: ''
       });
@@ -112,7 +112,7 @@ const Communities = () => {
     setFormData({
       name: community.name,
       description: community.description || '',
-      location: community.location || '',
+      chiefdom: community.chiefdom || '',
       contactPerson: community.contactPerson || '',
       contactPhone: community.contactPhone || ''
     });
@@ -148,7 +148,7 @@ const Communities = () => {
           <TableHead>
             <TableRow>
               <TableCell>Community Name</TableCell>
-              <TableCell>Location</TableCell>
+              <TableCell>Chiefdom</TableCell>
               <TableCell>Contact Person</TableCell>
               <TableCell>Contact Phone</TableCell>
               <TableCell>Actions</TableCell>
@@ -158,7 +158,7 @@ const Communities = () => {
             {communities.map((community) => (
               <TableRow key={community.id}>
                 <TableCell>{community.name}</TableCell>
-                <TableCell>{community.location}</TableCell>
+                <TableCell>{community.chiefdom}</TableCell>
                 <TableCell>{community.contactPerson}</TableCell>
                 <TableCell>{community.contactPhone}</TableCell>
                 <TableCell>
@@ -216,9 +216,9 @@ const Communities = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                label="Chiefdom"
+                value={formData.chiefdom}
+                onChange={(e) => setFormData({ ...formData, chiefdom: e.target.value })}
                 required
               />
             </Grid>
@@ -245,7 +245,7 @@ const Communities = () => {
           <Button 
             onClick={handleSubmit}
             variant="contained"
-            disabled={!formData.name || !formData.location}
+            disabled={!formData.name || !formData.chiefdom}
           >
             {editingCommunity ? 'Update' : 'Add'} Community
           </Button>
