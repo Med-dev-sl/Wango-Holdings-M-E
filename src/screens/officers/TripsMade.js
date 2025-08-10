@@ -29,6 +29,7 @@ import { useFirebase } from '../../firebase/context';
 const TripsMade = () => {
   const { db } = useFirebase();
   const [officers, setOfficers] = useState([]);
+  const [communities, setCommunities] = useState([]);
   const [selectedOfficer, setSelectedOfficer] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
@@ -43,23 +44,44 @@ const TripsMade = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    fetchOfficers();
-  }, []);
+    const fetchCommunities = async () => {
+      try {
+        const communitiesRef = collection(db, 'communities');
+        const snapshot = await getDocs(communitiesRef);
+        const communitiesList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setCommunities(communitiesList);
+      } catch (error) {
+        setError('Error fetching communities: ' + error.message);
+      }
+    };
 
-  const fetchOfficers = async () => {
-    try {
-      const officersRef = collection(db, 'officers');
-      const snapshot = await getDocs(officersRef);
-      const officersList = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        trips: doc.data().trips || []
-      }));
-      setOfficers(officersList);
-    } catch (error) {
-      setError('Error fetching officers: ' + error.message);
-    }
-  };
+    const fetchOfficers = async () => {
+      try {
+        const officersRef = collection(db, 'officers');
+        const snapshot = await getDocs(officersRef);
+        const officersList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          trips: doc.data().trips || []
+        }));
+        setOfficers(officersList);
+      } catch (error) {
+        setError('Error fetching officers: ' + error.message);
+      }
+    };
+
+    const loadData = async () => {
+      await Promise.all([
+        fetchOfficers(),
+        fetchCommunities()
+      ]);
+    };
+    
+    loadData();
+  }, [db]); // db is stable and comes from context
 
   const handleAddTrip = async () => {
     try {
@@ -67,7 +89,7 @@ const TripsMade = () => {
       const tripsRef = collection(db, 'trips');
       
       // Add trip to trips collection
-      const tripDoc = await addDoc(tripsRef, {
+      await addDoc(tripsRef, {
         ...tripDetails,
         officerId: selectedOfficer.id,
         officerName: selectedOfficer.name,
@@ -90,7 +112,16 @@ const TripsMade = () => {
         farmersVisited: '',
         notes: ''
       });
-      fetchOfficers();
+      
+      // Refresh officers data
+      const officersRef = collection(db, 'officers');
+      const snapshot = await getDocs(officersRef);
+      const officersList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        trips: doc.data().trips || []
+      }));
+      setOfficers(officersList);
     } catch (error) {
       setError('Error adding trip: ' + error.message);
     }
@@ -107,7 +138,7 @@ const TripsMade = () => {
           <TableHead>
             <TableRow>
               <TableCell>Officer Name</TableCell>
-              <TableCell>Region</TableCell>
+              <TableCell>Community</TableCell>
               <TableCell align="center">Total Trips</TableCell>
               <TableCell>Last Trip</TableCell>
               <TableCell>Actions</TableCell>
@@ -117,7 +148,9 @@ const TripsMade = () => {
             {officers.map((officer) => (
               <TableRow key={officer.id}>
                 <TableCell>{officer.name}</TableCell>
-                <TableCell>{officer.region || 'Not Assigned'}</TableCell>
+                <TableCell>
+                  {communities.find(c => c.id === officer.communityId)?.name || 'Not Assigned'}
+                </TableCell>
                 <TableCell align="center">{officer.tripsCount || 0}</TableCell>
                 <TableCell>
                   {officer.lastTripDate 
