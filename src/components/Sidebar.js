@@ -134,20 +134,25 @@ const Sidebar = () => {
           borderColor: 'divider'
         }}
       >
-        <Box
-          component="h1"
-          sx={{
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            color: 'primary.main',
-            m: 0
-          }}
-        >
-          Wango Holdings
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <img src={process.env.PUBLIC_URL + '/logo.png'} alt="Wangu Holdings Logo" style={{ width: 48, height: 48, marginBottom: 8 }} />
+          <Box
+            component="h1"
+            sx={{
+              fontSize: '1.1rem',
+              fontWeight: 700,
+              color: 'primary.main',
+              m: 0,
+              textAlign: 'center',
+              lineHeight: 1.2
+            }}
+          >
+            Wangu Holdings Limited<br />| M&E Platform
+          </Box>
         </Box>
       </Box>
       <List sx={{ pt: 1 }}>
-        <SidebarItem icon={DashboardIcon} onClick={() => navigate('')}>
+        <SidebarItem icon={DashboardIcon} onClick={() => navigate('dashboard')}>
           Dashboard
         </SidebarItem>
         

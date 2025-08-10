@@ -109,32 +109,22 @@ const LoginScreen = () => {
     <StyledPaper component="main">
       <LoginFormContainer>
             <Box sx={{ mb: 5, textAlign: 'center' }}>
+              <img src={process.env.PUBLIC_URL + '/logo.png'} alt="Wangu Holdings Logo" style={{ width: 64, height: 64, marginBottom: 8 }} />
               <Typography 
-                variant="h4" 
+                variant="h5" 
                 component="h1" 
                 gutterBottom 
                 sx={{ 
                   color: 'primary.main',
                   fontFamily: 'Century Gothic',
                   fontWeight: 'bold',
-                  mb: 2,
+                  mb: 1,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
+                  letterSpacing: '0.5px',
+                  lineHeight: 1.2
                 }}
               >
-                Wango Holdings
-              </Typography>
-              <Typography 
-                variant="h6"
-                gutterBottom
-                sx={{ 
-                  color: theme => theme.palette.primary.dark,
-                  fontFamily: 'Century Gothic',
-                  fontWeight: 'medium',
-                  mb: 1
-                }}
-              >
-                Monitoring & Evaluation System
+                Wangu Holdings Limited<br />| M&E Platform
               </Typography>
               <Typography 
                 variant="subtitle1"
