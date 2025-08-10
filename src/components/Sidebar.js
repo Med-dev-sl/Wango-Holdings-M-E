@@ -26,6 +26,11 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import GrassIcon from '@mui/icons-material/Grass';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import DirectionsIcon from '@mui/icons-material/Directions';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import AddLocationIcon from '@mui/icons-material/AddLocation';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../firebase/context';
 
@@ -64,11 +69,12 @@ const Sidebar = () => {
   const { signOut } = useFirebase();
   const [officersMenuOpen, setOfficersMenuOpen] = useState(false);
   const [farmersMenuOpen, setFarmersMenuOpen] = useState(false);
+  const [tripsMenuOpen, setTripsMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -80,6 +86,10 @@ const Sidebar = () => {
 
   const handleFarmersClick = () => {
     setFarmersMenuOpen(!farmersMenuOpen);
+  };
+
+  const handleTripsClick = () => {
+    setTripsMenuOpen(!tripsMenuOpen);
   };
 
   return (
@@ -122,7 +132,7 @@ const Sidebar = () => {
         </Box>
       </Box>
       <List sx={{ pt: 1 }}>
-        <SidebarItem icon={DashboardIcon} onClick={() => navigate('/dashboard')}>
+        <SidebarItem icon={DashboardIcon} onClick={() => navigate('')}>
           Dashboard
         </SidebarItem>
         
@@ -140,35 +150,35 @@ const Sidebar = () => {
           <List component="div" disablePadding>
             <SidebarItem 
               icon={PersonAddIcon} 
-              onClick={() => navigate('/dashboard/officers/manage')}
+              onClick={() => navigate('officers/manage')}
               nested
             >
               Add/Edit Officers
             </SidebarItem>
             <SidebarItem 
               icon={MapIcon} 
-              onClick={() => navigate('/dashboard/officers/communities')}
+              onClick={() => navigate('officers/communities')}
               nested
             >
               Communities
             </SidebarItem>
             <SidebarItem 
               icon={TimelineIcon} 
-              onClick={() => navigate('/dashboard/officers/trips')}
+              onClick={() => navigate('officers/trips')}
               nested
             >
               Trips Made
             </SidebarItem>
             <SidebarItem 
               icon={AssignmentTurnedInIcon} 
-              onClick={() => navigate('/dashboard/officers/compliance')}
+              onClick={() => navigate('officers/compliance')}
               nested
             >
               Compliance
             </SidebarItem>
             <SidebarItem 
               icon={AssessmentIcon} 
-              onClick={() => navigate('/dashboard/officers/status')}
+              onClick={() => navigate('officers/status')}
               nested
             >
               Status & KPIs
@@ -190,35 +200,35 @@ const Sidebar = () => {
           <List component="div" disablePadding>
             <SidebarItem 
               icon={PersonAddIcon} 
-              onClick={() => navigate('/dashboard/farmers/register')}
+              onClick={() => navigate('farmers/register')}
               nested
             >
               Register Farmer
             </SidebarItem>
             <SidebarItem 
               icon={GroupIcon} 
-              onClick={() => navigate('/dashboard/farmers/manage')}
+              onClick={() => navigate('farmers/manage')}
               nested
             >
               Manage Farmers
             </SidebarItem>
             <SidebarItem 
               icon={GrassIcon} 
-              onClick={() => navigate('/dashboard/farmers/crops')}
+              onClick={() => navigate('farmers/crops')}
               nested
             >
               Assign Crops
             </SidebarItem>
             <SidebarItem 
               icon={InventoryIcon} 
-              onClick={() => navigate('/dashboard/farmers/inputs')}
+              onClick={() => navigate('farmers/inputs')}
               nested
             >
               Track Inputs
             </SidebarItem>
             <SidebarItem 
               icon={LocalShippingIcon} 
-              onClick={() => navigate('/dashboard/farmers/deliveries')}
+              onClick={() => navigate('farmers/deliveries')}
               nested
             >
               Manage Deliveries
@@ -226,7 +236,50 @@ const Sidebar = () => {
           </List>
         </Collapse>
 
-        <SidebarItem icon={SettingsIcon} onClick={() => navigate('/dashboard/settings')}>
+        {/* Trips/Field Visits Menu */}
+        <SidebarItem 
+          icon={DirectionsIcon} 
+          onClick={handleTripsClick}
+          hasSubmenu
+          open={tripsMenuOpen}
+        >
+          Trips/Field Visits
+        </SidebarItem>
+        
+        <Collapse in={tripsMenuOpen} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            <SidebarItem 
+              icon={AddLocationIcon} 
+              onClick={() => navigate('trips/new')}
+              nested
+            >
+              New Trip Entry
+            </SidebarItem>
+            <SidebarItem 
+              icon={ListAltIcon} 
+              onClick={() => navigate('trips/list')}
+              nested
+            >
+              View All Trips
+            </SidebarItem>
+            <SidebarItem 
+              icon={ReceiptIcon} 
+              onClick={() => navigate('trips/expenses')}
+              nested
+            >
+              Trip Expenses
+            </SidebarItem>
+            <SidebarItem 
+              icon={AddPhotoAlternateIcon} 
+              onClick={() => navigate('trips/photos')}
+              nested
+            >
+              Trip Photos
+            </SidebarItem>
+          </List>
+        </Collapse>
+
+        <SidebarItem icon={SettingsIcon} onClick={() => navigate('settings')}>
           Settings
         </SidebarItem>
         <Divider sx={{ my: 1 }} />

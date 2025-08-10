@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -27,6 +27,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
+import TableToolbar from '../../components/common/TableToolbar';
+import useTableData from '../../hooks/useTableData';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 const ManageFarmers = () => {
   const { db } = useFirebase();
@@ -34,6 +37,52 @@ const ManageFarmers = () => {
   const [communities, setCommunities] = useState([]);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
+  // Process data for filtering and sorting
+  const processedData = useMemo(() => {
+    return farmers.map(farmer => ({
+      ...farmer,
+      communityName: communities.find(c => c.id === farmer.communityId)?.name || 'Unknown',
+      formattedLandSize: `${farmer.landSize} hectares`
+    }));
+  }, [farmers, communities]);
+
+  const {
+    filteredData,
+    searchTerm,
+    filters,
+    order,
+    orderBy,
+    handleSearchChange,
+    handleFilterChange,
+    handleSortChange
+  } = useTableData({
+    data: processedData,
+    defaultSortKey: 'whfId',
+    defaultFilterValues: {
+      status: '',
+      communityId: ''
+    }
+  });
+
+  // Export columns configuration
+  const exportColumns = [
+    { id: 'whfId', label: 'WHF ID' },
+    { id: 'name', label: 'Name' },
+    { id: 'phone', label: 'Phone' },
+    { id: 'communityName', label: 'Community' },
+    { id: 'landSize', label: 'Land Size (hectares)' },
+    { id: 'status', label: 'Status' }
+  ];
+
+  const handleExportPDF = () => {
+    exportToPDF(filteredData, exportColumns, 'Farmers_List');
+  };
+
+  const handleExportExcel = () => {
+    exportToExcel(filteredData, exportColumns, 'Farmers_List');
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -148,6 +197,39 @@ const ManageFarmers = () => {
         Manage Farmers
       </Typography>
 
+      <TableToolbar
+        title="Farmers List"
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        filters={filters}
+        filterOptions={[
+          {
+            field: 'status',
+            label: 'Status',
+            values: ['active', 'inactive']
+          },
+          {
+            field: 'communityId',
+            label: 'Community',
+            values: communities.map(c => ({ value: c.id, label: c.name }))
+          }
+        ]}
+        onFilterChange={handleFilterChange}
+        order={order}
+        orderBy={orderBy}
+        onSort={handleSortChange}
+        sortOptions={[
+          { field: 'whfId', label: 'WHF ID' },
+          { field: 'name', label: 'Name' },
+          { field: 'communityName', label: 'Community' },
+          { field: 'landSize', label: 'Land Size' }
+        ]}
+        exportData={filteredData}
+        exportColumns={exportColumns}
+        onExportPDF={handleExportPDF}
+        onExportExcel={handleExportExcel}
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -162,7 +244,7 @@ const ManageFarmers = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {farmers.map((farmer) => (
+            {filteredData.map((farmer) => (
               <TableRow key={farmer.id}>
                 <TableCell>{farmer.whfId}</TableCell>
                 <TableCell>{farmer.name}</TableCell>

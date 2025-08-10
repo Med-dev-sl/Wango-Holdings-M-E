@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -26,6 +26,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { collection, addDoc, doc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
+import TableToolbar from '../../components/common/TableToolbar';
+import useTableData from '../../hooks/useTableData';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 const ManageCrops = () => {
   const { db } = useFirebase();
@@ -35,20 +38,8 @@ const ManageCrops = () => {
   const [selectedCrop, setSelectedCrop] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [formData, setFormData] = useState({
-    name: '',
-    variety: '',
-    growthPeriod: '',
-    description: '',
-    unit: 'kg', // Default unit
-    status: 'active'
-  });
 
-  useEffect(() => {
-    fetchCrops();
-  }, [db]);
-
-  const fetchCrops = async () => {
+  const fetchCrops = useCallback(async () => {
     try {
       const cropsRef = collection(db, 'crops');
       const cropsSnapshot = await getDocs(cropsRef);
@@ -60,7 +51,66 @@ const ManageCrops = () => {
     } catch (error) {
       setError('Error fetching crops: ' + error.message);
     }
+  }, [db]);
+
+  // Process data for filtering and sorting
+  const processedData = useMemo(() => {
+    return crops.map(crop => ({
+      ...crop,
+      growthPeriodDisplay: crop.growthPeriod ? `${crop.growthPeriod} days` : 'N/A'
+    }));
+  }, [crops]);
+
+  const {
+    filteredData,
+    searchTerm,
+    filters,
+    order,
+    orderBy,
+    handleSearchChange,
+    handleFilterChange,
+    handleSortChange
+  } = useTableData({
+    data: processedData,
+    defaultSortKey: 'name',
+    defaultFilterValues: {
+      status: '',
+      unit: ''
+    }
+  });
+
+  // Export columns configuration
+  const exportColumns = [
+    { id: 'name', label: 'Name' },
+    { id: 'variety', label: 'Variety' },
+    { id: 'growthPeriodDisplay', label: 'Growth Period' }, // Using the formatted display value
+    { id: 'unit', label: 'Unit' },
+    { id: 'status', label: 'Status' },
+    { id: 'description', label: 'Description' }
+  ];
+
+  const handleExportPDF = () => {
+    exportToPDF(filteredData, exportColumns, 'Crops_List');
   };
+
+  const handleExportExcel = () => {
+    exportToExcel(filteredData, exportColumns, 'Crops_List');
+  };
+
+  const [formData, setFormData] = useState({
+    name: '',
+    variety: '',
+    growthPeriod: '',
+    description: '',
+    unit: 'kg', // Default unit
+    status: 'active'
+  });
+
+  useEffect(() => {
+    fetchCrops();
+  }, [db, fetchCrops]);
+
+
 
   const handleOpenDialog = (crop = null) => {
     if (crop) {
@@ -153,6 +203,38 @@ const ManageCrops = () => {
         </Button>
       </Box>
 
+      <TableToolbar
+        title="Crops List"
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        filters={filters}
+        filterOptions={[
+          {
+            field: 'status',
+            label: 'Status',
+            values: ['active', 'inactive']
+          },
+          {
+            field: 'unit',
+            label: 'Unit',
+            values: ['kg', 'g', 'ton', 'piece']
+          }
+        ]}
+        onFilterChange={handleFilterChange}
+        order={order}
+        orderBy={orderBy}
+        onSort={handleSortChange}
+        sortOptions={[
+          { field: 'name', label: 'Name' },
+          { field: 'variety', label: 'Variety' },
+          { field: 'growthPeriod', label: 'Growth Period' }
+        ]}
+        exportData={filteredData}
+        exportColumns={exportColumns}
+        onExportPDF={handleExportPDF}
+        onExportExcel={handleExportExcel}
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -167,7 +249,7 @@ const ManageCrops = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {crops.map((crop) => (
+            {filteredData.map((crop) => (
               <TableRow key={crop.id}>
                 <TableCell>{crop.id}</TableCell>
                 <TableCell>{crop.name}</TableCell>

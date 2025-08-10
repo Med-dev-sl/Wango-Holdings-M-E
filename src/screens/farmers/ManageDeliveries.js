@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -17,14 +17,18 @@ import {
   TextField,
   Grid,
   MenuItem,
+  IconButton,
+  Tooltip,
   Snackbar,
   Alert,
   Chip,
-  IconButton,
   Divider
 } from '@mui/material';
+import TableToolbar from '../../components/common/TableToolbar';
+import useTableData from '../../hooks/useTableData';
 import { collection, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 const ManageDeliveries = () => {
   const { db } = useFirebase();
@@ -36,6 +40,39 @@ const ManageDeliveries = () => {
   const [selectedDeliveries, setSelectedDeliveries] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Search and filter states
+  // Process data for filtering and sorting
+  const processedData = useMemo(() => {
+    return farmers.map(farmer => ({
+      ...farmer,
+      // Add searchable/filterable/sortable fields
+      lastDeliveryDate: farmer.deliveries?.[0]?.deliveryDate || new Date(0),
+      communityName: farmer.communityDetails?.name || 'Unknown',
+      cropsDelivered: (farmer.deliveries || []).map(d => d.cropId),
+      qualityRatings: (farmer.deliveries || []).map(d => d.quality)
+    }));
+  }, [farmers]);
+
+  const {
+    filteredData: tableData,
+    searchTerm,
+    filters,
+    order,
+    orderBy,
+    handleSearchChange,
+    handleFilterChange,
+    handleSortChange
+  } = useTableData({
+    data: processedData || [],
+    defaultSortKey: 'lastDeliveryDate',
+    defaultFilterValues: {
+      communityId: '',
+      cropId: '',
+      quality: ''
+    }
+  });
+
   const [formData, setFormData] = useState({
     cropId: '',
     quantity: '',
@@ -43,6 +80,33 @@ const ManageDeliveries = () => {
     quality: 'good',
     notes: ''
   });
+
+  // Export data preparation and handlers
+  const getExportData = () => {
+    return farmers.flatMap(farmer => 
+      (farmer.deliveries || []).map(delivery => {
+        const crop = crops.find(c => c.id === delivery.cropId);
+        return {
+          whfId: farmer.whfId,
+          farmerName: farmer.name,
+          community: farmer.communityDetails?.name,
+          cropName: crop?.name,
+          quantity: delivery.quantity,
+          quality: delivery.quality,
+          deliveryDate: new Date(delivery.deliveryDate).toLocaleDateString(),
+          notes: delivery.notes || ''
+        };
+      })
+    );
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF(getExportData(), exportColumns, 'Farmer_Deliveries_Report');
+  };
+
+  const handleExportExcel = () => {
+    exportToExcel(getExportData(), exportColumns, 'Farmer_Deliveries_Report');
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -165,11 +229,72 @@ const ManageDeliveries = () => {
     }
   };
 
+  // Filter options
+  const filterOptions = useMemo(() => [
+    { key: 'community', label: 'Filter by Community' },
+    { key: 'crop', label: 'Filter by Crop' },
+    { key: 'quality', label: 'Filter by Quality' }
+  ], []);
+
+  // Sort options
+  const sortOptions = useMemo(() => [
+    { key: 'deliveryDate', label: 'Sort by Date' },
+    { key: 'quantity', label: 'Sort by Quantity' },
+    { key: 'quality', label: 'Sort by Quality' }
+  ], []);
+
+  // Export columns configuration
+  const exportColumns = [
+    { id: 'whfId', label: 'WHF ID' },
+    { id: 'farmerName', label: 'Farmer Name' },
+    { id: 'community', label: 'Community' },
+    { id: 'cropName', label: 'Crop' },
+    { id: 'quantity', label: 'Quantity' },
+    { id: 'quality', label: 'Quality' },
+    { id: 'deliveryDate', label: 'Delivery Date' },
+    { id: 'notes', label: 'Notes' }
+  ];
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Manage Deliveries
-      </Typography>
+      <TableToolbar
+        title="Manage Deliveries"
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        filters={filters}
+        filterOptions={[
+          {
+            field: 'communityId',
+            label: 'Community',
+            values: Array.from(new Set(farmers.map(f => f.communityDetails?.name || 'Unknown')))
+              .filter(Boolean)
+              .sort()
+          },
+          {
+            field: 'cropId',
+            label: 'Crop',
+            values: Array.from(new Set(crops.map(c => c.name)))
+              .filter(Boolean)
+              .sort()
+          },
+          {
+            field: 'quality',
+            label: 'Quality',
+            values: ['excellent', 'good', 'fair', 'poor']
+          }
+        ]}
+        onFilterChange={handleFilterChange}
+        data={getExportData()}
+        columns={exportColumns}
+        order={order}
+        orderBy={orderBy}
+        onSort={handleSortChange}
+        sortOptions={[
+          { field: 'lastDeliveryDate', label: 'Date' },
+          { field: 'name', label: 'Name' },
+          { field: 'communityName', label: 'Community' }
+        ]}
+      />
 
       <TableContainer component={Paper}>
         <Table>
@@ -183,7 +308,7 @@ const ManageDeliveries = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {farmers.map((farmer) => (
+            {tableData.map((farmer) => (
               <TableRow key={farmer.id}>
                 <TableCell>{farmer.whfId}</TableCell>
                 <TableCell>{farmer.name}</TableCell>

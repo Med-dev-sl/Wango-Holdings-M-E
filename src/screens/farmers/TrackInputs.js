@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -18,10 +18,14 @@ import {
   Grid,
   MenuItem,
   Snackbar,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material';
 import { collection, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { useFirebase } from '../../firebase/context';
+import TableToolbar from '../../components/common/TableToolbar';
+import useTableData from '../../hooks/useTableData';
+import { exportToPDF, exportToExcel } from '../../utils/exportUtils';
 
 const TrackInputs = () => {
   const { db } = useFirebase();
@@ -31,6 +35,49 @@ const TrackInputs = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Process data for filtering and sorting
+  const processedData = useMemo(() => {
+    return farmers.map(farmer => ({
+      ...farmer,
+      lastInputDate: farmer.inputsReceived?.[0]?.dateReceived || new Date(0),
+      totalInputs: farmer.inputsReceived?.length || 0
+    }));
+  }, [farmers]);
+
+  const {
+    filteredData,
+    searchTerm,
+    filters,
+    order,
+    orderBy,
+    handleSearchChange,
+    handleFilterChange,
+    handleSortChange
+  } = useTableData({
+    data: processedData,
+    defaultSortKey: 'lastInputDate',
+    defaultFilterValues: {
+      communityId: ''
+    }
+  });
+
+  // Export columns configuration
+  const exportColumns = [
+    { id: 'whfId', label: 'WHF ID' },
+    { id: 'name', label: 'Name' },
+    { id: 'communityName', label: 'Community' },
+    { id: 'totalInputs', label: 'Total Inputs Received' }
+  ];
+
+  const handleExportPDF = () => {
+    exportToPDF(filteredData, exportColumns, 'Farm_Inputs_Report');
+  };
+
+  const handleExportExcel = () => {
+    exportToExcel(filteredData, exportColumns, 'Farm_Inputs_Report');
+  };
+
   const [formData, setFormData] = useState({
     inputId: '',
     quantity: '',
@@ -58,14 +105,15 @@ const TrackInputs = () => {
         }));
         setFarmers(farmersList);
 
-        // Fetch inputs
-        const inputsRef = collection(db, 'inputs');
-        const inputsSnapshot = await getDocs(inputsRef);
-        const inputsList = inputsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setInputs(inputsList);
+        // Set predefined inputs
+        const predefinedInputs = [
+          { id: 'fertilizer', name: 'Fertilizer', type: 'supply' },
+          { id: 'tools', name: 'Tools', type: 'equipment' },
+          { id: 'training', name: 'Training', type: 'service' },
+          { id: 'pestControl', name: 'Pest Control', type: 'supply' },
+          { id: 'allAbove', name: 'All of the Above', type: 'package' }
+        ];
+        setInputs(predefinedInputs);
       } catch (error) {
         setError('Error fetching data: ' + error.message);
       }
@@ -142,20 +190,49 @@ const TrackInputs = () => {
         Track Farm Inputs
       </Typography>
 
+      <TableToolbar
+        title="Farm Inputs"
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        filters={filters}
+        filterOptions={[
+          {
+            field: 'communityId',
+            label: 'Community',
+            values: Array.from(new Set(farmers.map(f => f.communityName))).filter(Boolean)
+          }
+        ]}
+        onFilterChange={handleFilterChange}
+        order={order}
+        orderBy={orderBy}
+        onSort={handleSortChange}
+        sortOptions={[
+          { field: 'whfId', label: 'WHF ID' },
+          { field: 'name', label: 'Name' },
+          { field: 'communityName', label: 'Community' },
+          { field: 'lastInputDate', label: 'Last Input Date' },
+          { field: 'totalInputs', label: 'Total Inputs' }
+        ]}
+        exportData={filteredData}
+        exportColumns={exportColumns}
+        onExportPDF={handleExportPDF}
+        onExportExcel={handleExportExcel}
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>WHF ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Community</TableCell>
               <TableCell>Recent Inputs</TableCell>
+              <TableCell>Total Inputs</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {farmers.map((farmer) => (
+            {filteredData.map((farmer) => (
               <TableRow key={farmer.id}>
                 <TableCell>{farmer.id}</TableCell>
                 <TableCell>{farmer.whfId}</TableCell>
@@ -214,7 +291,12 @@ const TrackInputs = () => {
               >
                 {inputs.map((input) => (
                   <MenuItem key={input.id} value={input.id}>
-                    {input.name}
+                    <Box>
+                      <Typography variant="subtitle1">{input.name}</Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Type: {input.type}
+                      </Typography>
+                    </Box>
                   </MenuItem>
                 ))}
               </TextField>
@@ -222,13 +304,18 @@ const TrackInputs = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Quantity"
+                label={`Quantity ${formData.inputId === 'training' ? '(Hours)' : 
+                  formData.inputId === 'tools' ? '(Units)' : 
+                  formData.inputId === 'pestControl' || formData.inputId === 'fertilizer' ? '(Kg)' : ''}`}
                 name="quantity"
                 type="number"
                 value={formData.quantity}
                 onChange={handleChange}
                 required
-                inputProps={{ min: 0, step: 0.1 }}
+                inputProps={{ 
+                  min: 0, 
+                  step: formData.inputId === 'training' ? 1 : 0.1
+                }}
               />
             </Grid>
             <Grid item xs={12}>

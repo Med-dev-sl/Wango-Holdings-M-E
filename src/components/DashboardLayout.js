@@ -9,6 +9,7 @@ import TripsMade from '../screens/officers/TripsMade';
 import ComplianceMonitoring from '../screens/officers/ComplianceMonitoring';
 import StatusAndKPIs from '../screens/officers/StatusAndKPIs';
 import FarmersLayout from '../screens/farmers/FarmersLayout';
+import { NewTrip, TripList, TripExpenses, TripPhotos } from '../screens/trips';
 
 const DashboardLayout = () => {
   return (
@@ -35,6 +36,12 @@ const DashboardLayout = () => {
             <Route path="status" element={<StatusAndKPIs />} />
           </Route>
           <Route path="farmers/*" element={<FarmersLayout />} />
+          <Route path="trips">
+            <Route path="new" element={<NewTrip />} />
+            <Route path="list" element={<TripList />} />
+            <Route path="expenses" element={<TripExpenses />} />
+            <Route path="photos" element={<TripPhotos />} />
+          </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Box>
