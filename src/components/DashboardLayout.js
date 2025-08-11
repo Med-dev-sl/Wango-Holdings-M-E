@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import DashboardScreen from '../screens/DashboardScreen';
 import ManageOfficers from '../screens/officers/ManageOfficers';
 import Communities from '../screens/officers/Communities';
+import TripsMade from '../screens/officers/TripsMade';
 import NewTrip from '../screens/trips/NewTrip';
 import TripList from '../screens/trips/TripList';
 import TripExpenses from '../screens/trips/TripExpenses';
@@ -43,6 +44,7 @@ const DashboardLayout = () => {
           <Route path="officers">
             <Route path="manage" element={<ManageOfficers />} />
             <Route path="communities" element={<Communities />} />
+            <Route path="trips-made" element={<TripsMade />} />
             <Route path="compliance" element={<ComplianceMonitoring />} />
             <Route path="status" element={<StatusAndKPIs />} />
           </Route>

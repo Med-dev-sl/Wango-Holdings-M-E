@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "wango-holdings"
-  }
+    "default": "wango-holdings",
+    "wango-holdingsltd": "wango-holdings"
+  },
+  "targets": {},
+  "etags": {}
 }

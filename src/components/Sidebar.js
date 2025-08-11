@@ -184,7 +184,7 @@ const Sidebar = () => {
             </SidebarItem>
             <SidebarItem 
               icon={TimelineIcon} 
-              onClick={() => navigate('officers/trips')}
+              onClick={() => navigate('officers/trips-made')}
               nested
             >
               Trips Made
